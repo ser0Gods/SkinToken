@@ -1,0 +1,24 @@
+services:
+  rig:
+    build: .
+    image: skintokens-rig
+    container_name: skintokens-rig
+    environment:
+      # Extra demo.py flags, e.g. EXTRA_ARGS=--use_transfer --use_postprocess
+      EXTRA_ARGS: ${EXTRA_ARGS:-}
+    volumes:
+      - ./input:/app/input
+      - ./results:/app/results
+      - skintokens_experiments:/app/experiments
+      - skintokens_models:/app/models
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: 1
+              capabilities: [gpu]
+
+volumes:
+  skintokens_experiments:
+  skintokens_models:

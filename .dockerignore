@@ -1,0 +1,4 @@
+input/
+results/
+*.log
+.git/
