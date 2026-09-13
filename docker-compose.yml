@@ -4,9 +4,11 @@ services:
     image: skintokens-rig
     container_name: skintokens-rig
     environment:
-      # Extra demo.py flags, e.g. EXTRA_ARGS=--use_transfer --use_postprocess
+      # --use_transfer is always on (maintains original texture/topology while applying the generated rig).
+      # Extra demo.py flags, e.g. EXTRA_ARGS=--use_postprocess
       EXTRA_ARGS: ${EXTRA_ARGS:-}
     volumes:
+      - ./entrypoint.sh:/usr/local/bin/entrypoint.sh:ro
       - ./input:/app/input
       - ./results:/app/results
       - skintokens_experiments:/app/experiments

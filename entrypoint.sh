@@ -8,4 +8,4 @@ if [ ! -f "$CKPT" ]; then
   python download.py --model
 fi
 
-exec python demo.py --input /app/input --output /app/results ${EXTRA_ARGS:-}
+exec python demo.py --input /app/input --output /app/results --use_transfer ${EXTRA_ARGS:-}
