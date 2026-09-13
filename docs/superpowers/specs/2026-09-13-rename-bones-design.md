@@ -15,6 +15,9 @@ producing new GLBs while leaving the originals untouched.
    lightweight `Dockerfile.rename` with no GPU and no third-party Python deps.
 5. Every `bone_<n>` present in the mapping is renamed. Bones missing from the mapping
    stay untouched (with a warning).
+6. The existing `Dockerfile` (and the `rig` compose service) must NOT be altered.
+   The rename pipeline lives in a **new** `Dockerfile.rename`.
+7. The conversion is runnable in one command via a new `rename_all.bat`.
 
 ## Approach (approved)
 **Stdlib-only GLB rewrite.** The script parses the GLB container in pure Python (same style as
@@ -67,7 +70,7 @@ No venv, no pip, no CUDA, no GPU, no named volumes.
       - ./mappings:/mappings:ro
 ```
 
-### `rename_all.bat` (symmetry with `rig_all.bat`, optional nicety)
+### `rename_all.bat` (one-command runner, symmetry with `rig_all.bat`)
 - `cd /d "%~dp0"`
 - If `%1` missing: print usage `rename_all.bat <convention>` + fail, `pause`.
 - `docker compose run --rm rename %1`; report success/fail by errorlevel; `pause`.
