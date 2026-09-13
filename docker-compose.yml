@@ -19,6 +19,16 @@ services:
               count: 1
               capabilities: [gpu]
 
+  rename:
+    build:
+      context: .
+      dockerfile: Dockerfile.rename
+    image: skintokens-rename
+    container_name: skintokens-rename
+    volumes:
+      - ./results:/results
+      - ./mappings:/mappings:ro
+
 volumes:
   skintokens_experiments:
   skintokens_models:

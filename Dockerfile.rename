@@ -1,0 +1,4 @@
+FROM python:3.12-alpine
+COPY rename_bones.py .
+WORKDIR /
+ENTRYPOINT ["python", "rename_bones.py"]
