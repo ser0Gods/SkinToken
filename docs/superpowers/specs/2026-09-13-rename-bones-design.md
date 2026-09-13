@@ -42,8 +42,10 @@ risking incidental changes to everything else in the file.
   5. Warn: mapping keys that matched no node in this model; model `bone_<n>` names missing from
       the mapping (e.g. `bone_10`…`bone_24` in current `mesh2motion.json`).
   6. If zero nodes were renamed → per-file error (likely wrong model or wrong convention).
-  7. Re-serialize JSON (compact separators, UTF-8; JSON chunk needs no 4-byte padding), copy the
-      BIN chunk (and any padding) verbatim, recompute chunk length and GLB total length.
+   7. Re-serialize JSON (compact separators); pad the JSON payload with `0x20` spaces to a
+      multiple of 4 bytes (GLB requires each chunk length to be 4-byte aligned); copy the BIN
+      chunk (and everything after it) verbatim; recompute the chunk length — payload-only, i.e.
+      it counts payload bytes only, NOT the 8-byte chunk header — and the GLB total length.
   8. Write `/results/<stem>__<convention>.glb` atomically (temp file + rename).
 - Non-zero exit if any file errored. Per-file summary line (renamed count, untouched count).
 
@@ -101,7 +103,9 @@ No venv, no pip, no CUDA, no GPU, no named volumes.
 4. Warnings printed for `bone_10`…`bone_24` and for never-matched template names.
 5. Idempotency: run again — existing `__mesh2motion.glb` files skipped, no double suffix.
 6. Unknown convention rejected with available list.
-7. Spot-check the rewritten file opens (GLB header length matches actual file size).
+7. Spot-check the rewritten file opens: GLB header length == actual file size, and the JSON
+   chunk length field == its payload bytes only (the BIN chunk header sits right after
+   `20 + json_len` — the 8-byte chunk header is not counted in that field).
 
 ## Out of scope
 - Fixing `mappings/mesh2motion.json` (user chose to keep it as-is; `bone_10`…`bone_24` stay).
