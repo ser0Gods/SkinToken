@@ -56,7 +56,10 @@ def parse_glb(data, name):
         raise GlbError(f"{name}: truncated chunk header")
     json_len = struct.unpack_from("<I", data, 12)[0]
     json_type = struct.unpack_from("<I", data, 16)[0]
-    payload_end = 12 + json_len
+    # Per the GLB spec the chunk length field counts only the payload bytes,
+    # not the 8-byte chunk header, so the payload starts at 20 and ends at
+    # 20 + json_len.
+    payload_end = 20 + json_len
     if json_type != JSON_CHUNK_TYPE:
         raise GlbError(f"{name}: first chunk is not JSON (type {json_type:#x})")
     if payload_end > size:
@@ -76,8 +79,9 @@ def rebuild_glb(gltf, rest):
         "utf-8"
     )
     payload = js + b"\x20" * _pad4(len(js))
+    # Chunk length field = payload bytes only (header not included).
     json_chunk = (
-        struct.pack("<I", 8 + len(payload))
+        struct.pack("<I", len(payload))
         + struct.pack("<I", JSON_CHUNK_TYPE)
         + payload
     )

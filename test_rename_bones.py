@@ -18,14 +18,15 @@ def make_glb(gltf, bin_body=b"\x00\x01\x02\x03"):
         "utf-8"
     )
     jpad = (4 - len(js) % 4) % 4
+    # Chunk length fields count payload bytes only, matching real GLB files.
     json_section = (
-        struct.pack("<II", 8 + len(js) + jpad, 0x4E4F534A)
+        struct.pack("<II", len(js) + jpad, 0x4E4F534A)
         + js
         + b" " * jpad
     )
     bpad = (4 - len(bin_body) % 4) % 4
     bin_section = (
-        struct.pack("<II", 8 + len(bin_body) + bpad, 0x4E4942)
+        struct.pack("<II", len(bin_body) + bpad, 0x4E4942)
         + bin_body
         + b"\x00" * bpad
     )
@@ -86,7 +87,7 @@ class RebuildGlbTests(unittest.TestCase):
         )
         out = rename_bones.rebuild_glb(gltf, rest)
         jlen = struct.unpack_from("<I", out, 12)[0]
-        payload = out[20 : 12 + jlen]
+        payload = out[20 : 20 + jlen]
         self.assertEqual(len(payload) % 4, 0)
         trailing = payload[payload.rfind(b"}") + 1 :]
         self.assertTrue(all(b == 0x20 for b in trailing))
@@ -99,6 +100,19 @@ class RebuildGlbTests(unittest.TestCase):
         self.assertIn(b"BIN\x00" + body, out)
         # original trailing bytes preserved verbatim
         self.assertTrue(out.endswith(rest))
+
+
+    def test_rebuilt_json_chunk_length_is_payload_only(self):
+        gltf, rest = rename_bones.parse_glb(
+            io.BytesIO(make_glb(sample_gltf(["bone_0"]))), "x.glb"
+        )
+        out = rename_bones.rebuild_glb(gltf, rest)
+        jlen = struct.unpack_from("<I", out, 12)[0]
+        # The next chunk header (BIN) must start right after the 20-byte
+        # prelude plus the jlen payload bytes — this pins the length field
+        # to payload-only semantics, as in real-world GLB files.
+        self.assertEqual(out[20 + jlen : 24 + jlen], struct.pack("<I", len(rest[8:])))
+        self.assertEqual(out[24 + jlen : 28 + jlen], b"BIN\x00")
 
 
 class RenameTests(unittest.TestCase):
