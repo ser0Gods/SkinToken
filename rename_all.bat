@@ -16,7 +16,7 @@ if "%~1"=="" (
 
 echo.
 echo Renaming bone_ names in all *.glb under results\ using mapping "%~1"
-echo Output: results\<source>__%~1.glb   ^(originals are not modified^)
+echo Output: results\^<source^>__%~1.glb   ^(originals are not modified^)
 echo.
 
 docker compose run --rm rename "%~1"
